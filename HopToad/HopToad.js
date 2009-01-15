@@ -117,6 +117,11 @@ function showFront(event)
 		widget.openURL("http://hoptoadapp.com");
 	});
 	
+	$("#reload").click(function(){
+		clearTimeout(TIMEOUT);
+		loadExceptions(true);
+	});
+	
 	loadExceptions();
 }
 
@@ -138,6 +143,7 @@ function preferences() {
 }
 
 function notify() {
+	clearTimeout(NOTIFY);
 	var count = $('p.exception').length;
 	
 	if (count > 0) {
@@ -148,7 +154,7 @@ function notify() {
 	NOTIFY = setTimeout(notify, 10 * MINUTE);
 }
 
-function loadExceptions() {
+function loadExceptions(should_notify) {
 	clearTimeout(TIMEOUT);
 	
 	var prefs = preferences();
@@ -170,13 +176,17 @@ function loadExceptions() {
 			if (output.match(/exception/gim)) {
 				$("#scrollArea").html(output);
 				$("abbr").timeago();
+				
+				if (should_notify) {
+					notify();
+				}
 			} else {
 				$("#scrollArea, #inform").addClass("hide");
 				$("#unable").removeClass("hide");
 			}
 		});
 		
-		TIMEOUT = setTimeout(loadExceptions, 60 * 1000);
+		TIMEOUT = setTimeout(loadExceptions, MINUTE);
 	} else {
 		$("#inform").show();
 	}

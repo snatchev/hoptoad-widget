@@ -248,3 +248,23 @@ p.exception abbr {
     left: 71px;
     top: 116px;
 }
+
+#reload {
+	background: #aaa;
+	display: inline-block;
+	font-family: ArialRoundedMTBold;
+	font-size: 11px;
+	padding: 3px;
+	-webkit-border-radius: 3px;
+	position: absolute;
+	top: 40px;
+	right: 30px;
+	cursor: pointer;
+	color: #fff;
+}
+
+#front {
+	width: 360px;
+	height: 240px;
+	position: relative;
+}
