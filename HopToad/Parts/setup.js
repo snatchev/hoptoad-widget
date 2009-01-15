@@ -10,5 +10,6 @@ function setupParts() {
     CreateText('text1', { text: 'Subdomain:' });
     CreateText('inform', { text: 'Inform your account info' });
     CreateText('author', { text: 'Created by Nando Vieira' });
+    CreateText('unable', { text: 'Unable to retrieve exceptions' });
 }
 window.addEventListener('load', setupParts, false);

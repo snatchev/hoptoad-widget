@@ -1,0 +1,12 @@
+desc "Create a new package"
+task "deploy" do
+  system "rm -rf ../HopToad.wdgt" if File.directory?("../HopToad.wdgt")
+  system "cp -R ../HopToad ../HopToad.wdgt"
+  system "cp -R ../HopToad.wdgt /tmp/"
+  system "killall DashboardClient"
+end
+
+desc "Install the widget"
+task "install" => :deploy do
+  system "open /tmp/HopToad.wdgt"
+end

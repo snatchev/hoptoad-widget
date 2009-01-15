@@ -7,6 +7,10 @@ body {
     margin: 0px;
 }
 
+.hide {
+	display: none;
+}
+
 #info {
     position: absolute;
     right: 15px;
@@ -149,7 +153,7 @@ p.exception {
     padding-bottom: 7px;
     padding-left: 10px;
     margin-bottom: 10px;
-	margin-right: 10px;
+    margin-right: 10px;
     position: relative;
     cursor: pointer;
     -webkit-border-radius: 10px;
@@ -191,7 +195,7 @@ p.exception a {
 
 p.exception abbr {
     font-color: #666;
-	white-space: nowrap;
+    white-space: nowrap;
 }
 
 #author {
@@ -222,22 +226,25 @@ p.exception abbr {
     position: absolute;
     width: 137px;
     height: 51px;
-    left: 16px;
+    left: 25px;
     top: 17px;
 }
 
-#hoptoad-back, #hoptoad-front {
+#hoptoad-back,
+#hoptoad-front,
+#author {
     cursor: pointer;
 }
 
-#imghoptoad-back, #imghoptoad-front {
-    cursor: pointer;
-}
-
-#imgimghoptoad-back, #imgimghoptoad-front {
-    cursor: pointer;
-}
-
-#imghoptoad-back, #imghoptoad-front {
-    cursor: pointer;
+#unable {
+    position: absolute;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: center;
+    font-family: ArialRoundedMTBold;
+    color: rgb(178, 178, 178);
+    font-size: 18pt;
+    width: 215px;
+    left: 71px;
+    top: 116px;
 }

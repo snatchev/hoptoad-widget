@@ -1,4 +1,6 @@
 var TIMEOUT = null;
+var NOTIFY = null;
+var MINUTE = 60 * 1000;
 
 //
 // Function: load()
@@ -7,9 +9,8 @@ var TIMEOUT = null;
 function load()
 {
     setupParts();
-	$("#hoptoad-back, #hoptoad-front").click(function(){
-		widget.openURL("http://hoptoadapp.com");
-	});
+	loadExceptions();
+	notify();
 }
 
 //
@@ -20,7 +21,8 @@ function remove()
 {
     // Stop any timers to prevent CPU usage
     // Remove any preferences as needed
-    clearInterval(TIMEOUT);
+    clearTimeout(TIMEOUT);
+    clearTimeout(NOTIFY);
     widget.setPreferenceForKey(null, createInstancePreferenceKey("HopToadApiKey"));
     widget.setPreferenceForKey(null, createInstancePreferenceKey("HopToadSubdomain"));
 }
@@ -32,7 +34,7 @@ function remove()
 function hide()
 {
     // Stop any timers to prevent CPU usage
-	clearInterval(TIMEOUT);
+	// clearInterval(TIMEOUT);
 }
 
 //
@@ -111,6 +113,10 @@ function showFront(event)
         setTimeout('widget.performTransition();', 0);
     }
 
+	$("#hoptoad-back, #hoptoad-front").click(function(){
+		widget.openURL("http://hoptoadapp.com");
+	});
+	
 	loadExceptions();
 }
 
@@ -131,48 +137,53 @@ function preferences() {
 	}
 }
 
+function notify() {
+	var count = $('p.exception').length;
+	
+	if (count > 0) {
+		var growl = "/usr/bin/osascript notifier.scpt " + count;
+		widget.system(growl, function(){});
+	}
+	
+	NOTIFY = setTimeout(notify, 10 * MINUTE);
+}
+
 function loadExceptions() {
+	clearTimeout(TIMEOUT);
+	
 	var prefs = preferences();
+	log("subdomain", prefs.subdomain);
+	log("api key", prefs.apiKey);
 	
 	if (prefs.apiKey && prefs.apiKey != "" && prefs.subdomain && prefs.subdomain != "") {
+		var cmd = "/usr/bin/osascript hop_toad.scpt " + prefs.subdomain + " " + prefs.apiKey;
+		
 		$("#inform").hide();
-	
-		$.ajax({
-			type: 'get',
-			dataType: 'xml',
-			url: "http://" + prefs.subdomain + ".hoptoadapp.com/errors.xml?auth_token=" + prefs.apiKey,
-			success: function(xml) {
-				$(xml).find("group").each(function(){
-					var message = $(this).find("error-message").text();
-					var id = $(this).find("id").text();
-					var count = $(this).find("notices-count").text();
-					var updated_at = $(this).find("updated-at").text();
-					var url = "http://" + prefs.subdomain + ".hoptoadapp.com/errors/" + id;
-					
-					var html = "";
-					html += "<p onclick='widget.openURL(\"" + url + "\");' title='Go to HopToad' id='exception-" + id + "' class='exception'>";
-					html += "<a>" + message + "</a> ";
-					html += "<strong>" + count + "</strong> ~ ";
-					html += "<abbr title='" + updated_at + "'>" + updated_at + "</abbr>";
-					html += "</p>";
-					
-					if ($("#exception-" + id).length > 0) {
-						$("#exception-" + id).remove();
-					}
-					
-					$("#scrollArea").append(html);					
-					$('#exception-' + id + ' abbr').timeago();
-				});
-			},
-			error: function() {
-				
+		
+		log("step", "about to execute command");
+		log("run", cmd);
+		
+		widget.system(cmd, function(cmd){
+			log("step", "command executed");
+			var output = cmd.outputString;
+			
+			if (output.match(/exception/gim)) {
+				$("#scrollArea").html(output);
+				$("abbr").timeago();
+			} else {
+				$("#scrollArea, #inform").addClass("hide");
+				$("#unable").removeClass("hide");
 			}
 		});
 		
-		TIMEOUT = setInterval(loadExceptions, 60 * 1000);
+		TIMEOUT = setTimeout(loadExceptions, 60 * 1000);
 	} else {
 		$("#inform").show();
 	}
+}
+
+function log(title, message) {
+	// $("#scrollArea").append("<strong>" + title.toString() + ":</strong> " + message.toString() + "<br>");
 }
 
 if (window.widget) {
