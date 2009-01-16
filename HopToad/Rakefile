@@ -1,12 +1,21 @@
-desc "Create a new package"
-task "deploy" do
+desc "Prepare widget to be deployed"
+task "prepare" do
   system "rm -rf ../HopToad.wdgt" if File.directory?("../HopToad.wdgt")
   system "cp -R ../HopToad ../HopToad.wdgt"
   system "cp -R ../HopToad.wdgt /tmp/"
-  system "killall DashboardClient"
+end
+
+desc "Create a new package"
+task "deploy" => :prepare do
+  path = "/tmp/HopToad.wdgt/HopToad.js"
+  contents = File.read(path)
+  contents.gsub!(/var DEBUG\s*=(.*?)$/sim, "var DEBUG = false;")
+
+  File.open(path, "w+") << contents
 end
 
 desc "Install the widget"
-task "install" => :deploy do
+task "install" => :prepare do
   system "open /tmp/HopToad.wdgt"
+  system "killall DashboardClient"
 end

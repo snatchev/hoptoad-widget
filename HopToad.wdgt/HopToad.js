@@ -1,6 +1,7 @@
 var TIMEOUT = null;
-var NOTIFY = null;
-var MINUTE = 60 * 1000;
+var GROWL  = null;
+var MINUTE  = 60 * 1000;
+var DEBUG   = true;
 
 //
 // Function: load()
@@ -8,9 +9,9 @@ var MINUTE = 60 * 1000;
 //
 function load()
 {
-    setupParts();
+	setupParts();
 	loadExceptions();
-	notify();
+	log("load", "widget has been loaded");
 }
 
 //
@@ -22,9 +23,11 @@ function remove()
     // Stop any timers to prevent CPU usage
     // Remove any preferences as needed
     clearTimeout(TIMEOUT);
-    clearTimeout(NOTIFY);
+    clearTimeout(GROWL);
     widget.setPreferenceForKey(null, createInstancePreferenceKey("HopToadApiKey"));
     widget.setPreferenceForKey(null, createInstancePreferenceKey("HopToadSubdomain"));
+
+	log("remove", "credentials has been removed");
 }
 
 //
@@ -35,6 +38,7 @@ function hide()
 {
     // Stop any timers to prevent CPU usage
 	// clearInterval(TIMEOUT);
+	log("hide", "widget has been hid");
 }
 
 //
@@ -43,21 +47,7 @@ function hide()
 //
 function show()
 {
-	
-}
-
-//
-// Function: sync()
-// Called when the widget has been synchronized with .Mac
-//
-function sync()
-{
-    // Retrieve any preference values that you need to be synchronized here
-    // Use this for an instance key's value:
-    // instancePreferenceValue = widget.preferenceForKey(null, createInstancePreferenceKey("your-key"));
-    //
-    // Or this for global key's value:
-    // globalPreferenceValue = widget.preferenceForKey(null, "your-key");
+	log("show", "widget has been shown");
 }
 
 //
@@ -118,8 +108,8 @@ function showFront(event)
 	});
 	
 	$("#reload").click(function(){
-		clearTimeout(TIMEOUT);
 		loadExceptions(true);
+		displayGrowlMessage();
 	});
 	
 	loadExceptions();
@@ -133,6 +123,8 @@ function saveProject(event)
 	$('#apiKey').val("");
 	$('#subdomain').val("");
 	showFront(event);
+	
+	log("preferences", "api key and subdomain has been saved");
 }
 
 function preferences() {
@@ -142,24 +134,12 @@ function preferences() {
 	}
 }
 
-function notify() {
-	clearTimeout(NOTIFY);
-	var count = $('p.exception').length;
-	
-	if (count > 0) {
-		var growl = "/usr/bin/osascript notifier.scpt " + count;
-		widget.system(growl, function(){});
-	}
-	
-	NOTIFY = setTimeout(notify, 10 * MINUTE);
-}
-
-function loadExceptions(should_notify) {
+function loadExceptions(should_growl) {
 	clearTimeout(TIMEOUT);
 	
 	var prefs = preferences();
-	log("subdomain", prefs.subdomain);
-	log("api key", prefs.apiKey);
+	
+	log("loadExceptions", "loading exceptions");
 	
 	if (prefs.apiKey && prefs.apiKey != "" && prefs.subdomain && prefs.subdomain != "") {
 		var cmd = "/usr/bin/osascript hop_toad.scpt " + prefs.subdomain + " " + prefs.apiKey;
@@ -174,31 +154,49 @@ function loadExceptions(should_notify) {
 			var output = cmd.outputString;
 			
 			if (output.match(/exception/gim)) {
-				$("#scrollArea").html(output);
+				$("#scrollArea")
+					.html(output)
+					.removeClass('hide');
+					
+				$('#no-exceptions')
+					.addClass('hide');
+				
 				$("abbr").timeago();
 				
-				if (should_notify) {
-					notify();
-				}
+				var unique = $('p.exception').length;
+				
+				cmd = 'growlnotify -m "' + unique + ' exception(s) loaded" -t "HopToad exceptions" --image Images/error.png -n HopToad';
+				widget.system(cmd, null);
+			} else if (output.match(/no-results/)) {
+				$('#no-exceptions')
+					.removeClass('hide');
+				
+				$('#scrollArea', '#inform')
+					.addClass("hide");
 			} else {
-				$("#scrollArea, #inform").addClass("hide");
-				$("#unable").removeClass("hide");
+				$("#scrollArea, #inform")
+					.addClass("hide");
+				
+				$("#unable")
+					.removeClass("hide");
 			}
 		});
 		
 		TIMEOUT = setTimeout(loadExceptions, MINUTE);
 	} else {
 		$("#inform").show();
+		log("loadExceptions", "no credentials found");
 	}
 }
 
 function log(title, message) {
-	// $("#scrollArea").append("<strong>" + title.toString() + ":</strong> " + message.toString() + "<br>");
+	if (DEBUG) {
+		widget.system('MESSAGE="' + title + ': ' + message + '" /usr/bin/osascript logger.scpt');
+	}
 }
 
 if (window.widget) {
     widget.onremove = remove;
     widget.onhide = hide;
     widget.onshow = show;
-    widget.onsync = sync;
 }

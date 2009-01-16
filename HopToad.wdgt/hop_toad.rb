@@ -36,26 +36,36 @@ class HopToad
   end
 end
 
+ENV["SUBDOMAIN"] = "fnando"
+ENV["API_KEY"] = "6d165a6b1ca34e7c76374be75221ff930bd6cb96"
+
 ht = HopToad.new
 
 if ht.authorized?
   xml = REXML::Document.new(ht.load)
-  contents = ""
+  
+  if xml.elements.to_a("groups/group").size.zero?
+    contents = "no-results"
+  else
+    contents = ""
 
-  xml.elements.each("groups/group") { |group|
-    message     = group.elements["error-message"].text.to_s.gsub(/</, '&lt;').gsub(/>/, '&gt;')
-    count       = group.elements["notices-count"].text.to_i
-    most_recent = Time.parse(group.elements["most-recent-notice-at"].text)
-    id          = group.elements["id"].text.to_i
+    xml.elements.each("groups/group") { |group|
+      message     = group.elements["error-message"].text.to_s.gsub(/</, '&lt;').gsub(/>/, '&gt;')
+      count       = group.elements["notices-count"].text.to_i
+      most_recent = Time.parse(group.elements["most-recent-notice-at"].text)
+      id          = group.elements["id"].text.to_i
     
-    contents << %(
-      <p onclick="widget.openURL('http://#{ht.subdomain}.hoptoadapp.com/errors/#{id}');" title="Go to HopToad" id="exception-#{id}" class="exception">
-        <a>#{message}</a>
-        <strong>#{count}</strong>
-        ~ <abbr title="#{most_recent.utc.strftime("%FT%T%z")}">#{most_recent.strftime("%b %d, %Y ~ %I:%M%p")}</abbr>
-      </p>
-    )
-  }
+      contents << %(
+        <p onclick="widget.openURL('http://#{ht.subdomain}.hoptoadapp.com/errors/#{id}');" title="Go to HopToad" id="exception-#{id}" class="exception">
+          <strong>#{count}</strong>
+          <a>#{message}</a>
+          <span class="timeago">
+            ~ <abbr title="#{most_recent.utc.strftime("%FT%T%z")}">#{most_recent.strftime("%b %d, %Y ~ %I:%M%p")}</abbr>
+          </span>
+        </p>
+      )
+    }
+  end
   
   puts contents
 end

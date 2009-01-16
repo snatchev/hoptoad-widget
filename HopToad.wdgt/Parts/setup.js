@@ -11,5 +11,7 @@ function setupParts() {
     CreateText('inform', { text: 'Inform your account info' });
     CreateText('author', { text: 'Created by Nando Vieira' });
     CreateText('unable', { text: 'Unable to retrieve exceptions' });
+    CreateText('no-exceptions', { text: 'Congrats!\nNo exceptions found!' });
+    CreateText('reload', { text: 'reload' });
 }
 window.addEventListener('load', setupParts, false);
