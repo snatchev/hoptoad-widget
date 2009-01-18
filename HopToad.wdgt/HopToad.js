@@ -1,7 +1,7 @@
-var TIMEOUT = null;
-var GROWL  = null;
-var MINUTE  = 60 * 1000;
-var DEBUG   = true;
+var TIMEOUT  = null;
+var NOTIFIER = null;
+var MINUTE   = 60 * 1000;
+var DEBUG    = true;
 
 //
 // Function: load()
@@ -11,6 +11,7 @@ function load()
 {
 	setupParts();
 	loadExceptions();
+	growlNotifier();
 	log("load", "widget has been loaded");
 }
 
@@ -134,6 +135,16 @@ function preferences() {
 	}
 }
 
+function growlNotifier() {
+	clearTimeout(NOTIFIER);
+	log("notification", "trying to display using growl");
+	
+	var cmd = '/usr/bin/osascript GrowlNotifier.scpt';
+	widget.system(cmd, function(){});
+	
+	NOTIFIER = setTimeout(growlNotifier, 1 * MINUTE);
+}
+
 function loadExceptions(should_growl) {
 	clearTimeout(TIMEOUT);
 	
@@ -142,7 +153,7 @@ function loadExceptions(should_growl) {
 	log("loadExceptions", "loading exceptions");
 	
 	if (prefs.apiKey && prefs.apiKey != "" && prefs.subdomain && prefs.subdomain != "") {
-		var cmd = "/usr/bin/osascript hop_toad.scpt " + prefs.subdomain + " " + prefs.apiKey;
+		var cmd = "/usr/bin/osascript HopToad.scpt " + prefs.subdomain + " " + prefs.apiKey;
 		
 		$("#inform").hide();
 		
@@ -162,16 +173,12 @@ function loadExceptions(should_growl) {
 					.addClass('hide');
 				
 				$("abbr").timeago();
-				
-				var unique = $('p.exception').length;
-				
-				cmd = 'growlnotify -m "' + unique + ' exception(s) loaded" -t "HopToad exceptions" --image Images/error.png -n HopToad';
-				widget.system(cmd, null);
+				growlNotifier();
 			} else if (output.match(/no-results/)) {
 				$('#no-exceptions')
 					.removeClass('hide');
 				
-				$('#scrollArea', '#inform')
+				$('#scrollArea, #inform')
 					.addClass("hide");
 			} else {
 				$("#scrollArea, #inform")

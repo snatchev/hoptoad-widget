@@ -5,6 +5,11 @@ This is a Mac OS X widget for the [HopToad](http://hoptoadapp.com) app. Just inf
 
 I started this widget on Dashcode, so the code is little messy! Should have made it using TextMate only! :P
 
+![Widget front](http://f.simplesideias.com.br/hoptoad-widget-front.png)
+
+![Widget back](http://f.simplesideias.com.br/hoptoad-widget-back.png)
+
+
 Installing
 ----------
 
